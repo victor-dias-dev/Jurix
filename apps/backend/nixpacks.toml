@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm"]
+
+[phases.install]
+cmds = ["pnpm install"]
+
+[phases.build]
+cmds = [
+  "pnpm --filter @jurix/shared-types build",
+  "pnpm --filter @jurix/backend build"
+]
+
+[start]
+cmd = "node dist/main.js"
+
