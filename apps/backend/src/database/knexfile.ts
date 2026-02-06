@@ -2,22 +2,23 @@ import type { Knex } from 'knex';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
+// Carregar .env do diretório raiz do backend
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL environment variable is required');
-}
-
-console.log(`[Knex] Using DATABASE_URL`);
-
-const isProduction = process.env.NODE_ENV === 'production';
+// Debug: mostrar qual porta está sendo usada
+const dbPort = Number(process.env.DB_PORT) || 5433;
+console.log(`[Knex] Connecting to PostgreSQL on port: ${dbPort}`);
 
 const config: Record<string, Knex.Config> = {
   development: {
     client: 'pg',
-    connection: databaseUrl,
+    connection: {
+      host: process.env.DB_HOST || 'localhost',
+      port: dbPort,
+      user: process.env.DB_USERNAME || 'jurix',
+      password: process.env.DB_PASSWORD || 'jurix_dev_2024',
+      database: process.env.DB_DATABASE || 'jurix_db',
+    },
     migrations: {
       directory: './migrations',
       extension: 'ts',
@@ -30,7 +31,11 @@ const config: Record<string, Knex.Config> = {
   production: {
     client: 'pg',
     connection: {
-      connectionString: databaseUrl,
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       ssl: { rejectUnauthorized: false },
     },
     migrations: {

@@ -8,6 +8,21 @@ import { ContractsModule } from './modules/contracts/contracts.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 
+function parseDatabaseUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return {
+      username: parsed.username,
+      password: parsed.password,
+      host: parsed.hostname,
+      port: parseInt(parsed.port, 10) || 5432,
+      database: parsed.pathname.slice(1).split('?')[0],
+    };
+  } catch {
+    return null;
+  }
+}
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,33 +35,28 @@ import { HealthModule } from './modules/health/health.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const databaseUrl = configService.get<string>('DATABASE_URL');
-        const isProduction = configService.get<string>('NODE_ENV') === 'production';
+        const dbConfig = databaseUrl ? parseDatabaseUrl(databaseUrl) : null;
 
-        if (!databaseUrl) {
-          throw new Error('DATABASE_URL environment variable is required');
-        }
+        const host = dbConfig?.host ?? configService.get<string>('DB_HOST', 'localhost');
+        const port = dbConfig?.port ?? configService.get<number>('DB_PORT', 5432);
 
-        const url = new URL(databaseUrl);
-        const host = url.hostname;
-        const port = parseInt(url.port, 10) || 5432;
-
-        console.log(`[Database] Connecting to ${host}:${port}`);
+        console.log(`[Database] Connecting to ${host}:${port} (using ${databaseUrl ? 'DATABASE_URL' : 'individual vars'})`);
 
         return {
           dialect: 'postgres',
           host,
           port,
-          username: url.username,
-          password: url.password,
-          database: url.pathname.slice(1),
+          username: dbConfig?.username ?? configService.get<string>('DB_USERNAME', 'jurix'),
+          password: dbConfig?.password ?? configService.get<string>('DB_PASSWORD', 'jurix_dev_2024'),
+          database: dbConfig?.database ?? configService.get<string>('DB_DATABASE', 'jurix_db'),
           autoLoadModels: true,
           synchronize: false,
-          logging: !isProduction,
+          logging: configService.get<string>('NODE_ENV') === 'development',
           define: {
             timestamps: true,
             underscored: true,
           },
-          dialectOptions: isProduction ? {
+          dialectOptions: databaseUrl ? {
             ssl: {
               require: true,
               rejectUnauthorized: false,
