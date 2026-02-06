@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, ComponentType } from 'react';
 import dynamic from 'next/dynamic';
 import { Loader2, FileText, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import { ContractStatus } from '@jurix/shared-types';
 import { useMounted } from '@/hooks/useMounted';
 
-// Dynamic import to avoid SSR issues
 const BlobProvider = dynamic(
   () => import('@react-pdf/renderer').then((mod) => mod.BlobProvider),
   { ssr: false }
@@ -31,22 +30,34 @@ interface ContractPDFPreviewProps {
   className?: string;
 }
 
+interface ContractPDFComponentProps {
+  contract: {
+    id: string;
+    title: string;
+    description: string;
+    content: string;
+    status: ContractStatus;
+    currentVersion: number;
+    createdBy: { name: string };
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewProps) {
   const mounted = useMounted();
-  const [ContractPDFComponent, setContractPDFComponent] = useState<React.ComponentType<{ contract: ContractPreviewData }> | null>(null);
+  const [PDFComponent, setPDFComponent] = useState<ComponentType<ContractPDFComponentProps> | null>(null);
   const [zoom, setZoom] = useState(100);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Load the PDF component on client side
   useEffect(() => {
     if (mounted) {
       import('./ContractPDF').then((mod) => {
-        setContractPDFComponent(() => mod.ContractPDF);
+        setPDFComponent(() => mod.ContractPDF as ComponentType<ContractPDFComponentProps>);
       });
     }
   }, [mounted]);
 
-  // Memoize the contract data to prevent unnecessary re-renders
   const contractData = useMemo(() => ({
     id: data.id || 'preview-' + Date.now(),
     title: data.title || 'Título do Contrato',
@@ -59,7 +70,7 @@ export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewP
     updatedAt: data.updatedAt || new Date().toISOString(),
   }), [data.id, data.title, data.description, data.content, data.status, data.currentVersion, data.createdBy, data.createdAt, data.updatedAt]);
 
-  if (!mounted || !ContractPDFComponent) {
+  if (!mounted || !PDFComponent) {
     return (
       <div className={`flex flex-col items-center justify-center bg-slate-800/30 rounded-lg border border-slate-700/50 ${className}`}>
         <Loader2 className="w-8 h-8 animate-spin text-primary-500 mb-3" />
@@ -70,7 +81,6 @@ export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewP
 
   return (
     <div className={`flex flex-col bg-slate-800/30 rounded-lg border border-slate-700/50 overflow-hidden ${className}`}>
-      {/* Preview Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/50 bg-slate-800/50">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-primary-400" />
@@ -103,9 +113,8 @@ export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewP
         </div>
       </div>
 
-      {/* PDF Preview */}
       <div className="flex-1 overflow-auto p-4 bg-slate-900/50">
-        <BlobProvider key={refreshKey} document={<ContractPDFComponent contract={contractData} />}>
+        <BlobProvider key={refreshKey} document={<PDFComponent contract={contractData} />}>
           {({ url, loading, error }) => {
             if (loading) {
               return (
@@ -150,7 +159,6 @@ export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewP
         </BlobProvider>
       </div>
 
-      {/* Preview Footer */}
       <div className="px-4 py-2 border-t border-slate-700/50 bg-slate-800/50">
         <p className="text-xs text-slate-500 text-center">
           O preview é atualizado automaticamente conforme você digita
@@ -159,4 +167,3 @@ export function ContractPDFPreview({ data, className = '' }: ContractPDFPreviewP
     </div>
   );
 }
-

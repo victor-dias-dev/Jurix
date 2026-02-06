@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_20", "pnpm"]
 
 [phases.install]
-cmds = ["pnpm install"]
+cmds = ["pnpm install --no-frozen-lockfile"]
 
 [phases.build]
 cmds = [
@@ -11,5 +11,5 @@ cmds = [
 ]
 
 [start]
-cmd = "node dist/main.js"
+cmd = "cd apps/backend && node dist/main.js"
 

@@ -113,6 +113,7 @@ const entityTypeLabels: Record<EntityType, string> = {
   [EntityType.CONTRACT]: 'Contrato',
   [EntityType.CONTRACT_VERSION]: 'Versão do Contrato',
   [EntityType.SESSION]: 'Sessão',
+  [EntityType.AUTH]: 'Autenticação',
 };
 
 export default function AuditPage() {

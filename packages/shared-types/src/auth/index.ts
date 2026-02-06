@@ -1,4 +1,4 @@
-import { UserRole } from '../enums/index.js';
+import { UserRole, UserStatus } from '../enums/index.js';
 
 export interface JWTPayload {
   sub: string;
@@ -22,6 +22,7 @@ export interface AuthResponse {
     email: string;
     name: string;
     role: UserRole;
+    status: UserStatus;
   };
 }
 
