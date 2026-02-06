@@ -8,21 +8,6 @@ import { ContractsModule } from './modules/contracts/contracts.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { HealthModule } from './modules/health/health.module';
 
-function parseDatabaseUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    return {
-      username: parsed.username,
-      password: parsed.password,
-      host: parsed.hostname,
-      port: parseInt(parsed.port, 10) || 5432,
-      database: parsed.pathname.slice(1).split('?')[0],
-    };
-  } catch {
-    return null;
-  }
-}
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,28 +20,33 @@ function parseDatabaseUrl(url: string) {
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const databaseUrl = configService.get<string>('DATABASE_URL');
-        const dbConfig = databaseUrl ? parseDatabaseUrl(databaseUrl) : null;
+        const isProduction = configService.get<string>('NODE_ENV') === 'production';
 
-        const host = dbConfig?.host ?? configService.get<string>('DB_HOST', 'localhost');
-        const port = dbConfig?.port ?? configService.get<number>('DB_PORT', 5432);
+        if (!databaseUrl) {
+          throw new Error('DATABASE_URL environment variable is required');
+        }
 
-        console.log(`[Database] Connecting to ${host}:${port} (using ${databaseUrl ? 'DATABASE_URL' : 'individual vars'})`);
+        const url = new URL(databaseUrl);
+        const host = url.hostname;
+        const port = parseInt(url.port, 10) || 5432;
+
+        console.log(`[Database] Connecting to ${host}:${port}`);
 
         return {
           dialect: 'postgres',
           host,
           port,
-          username: dbConfig?.username ?? configService.get<string>('DB_USERNAME', 'jurix'),
-          password: dbConfig?.password ?? configService.get<string>('DB_PASSWORD', 'jurix_dev_2024'),
-          database: dbConfig?.database ?? configService.get<string>('DB_DATABASE', 'jurix_db'),
+          username: url.username,
+          password: url.password,
+          database: url.pathname.slice(1),
           autoLoadModels: true,
           synchronize: false,
-          logging: configService.get<string>('NODE_ENV') === 'development',
+          logging: !isProduction,
           define: {
             timestamps: true,
             underscored: true,
           },
-          dialectOptions: databaseUrl ? {
+          dialectOptions: isProduction ? {
             ssl: {
               require: true,
               rejectUnauthorized: false,
