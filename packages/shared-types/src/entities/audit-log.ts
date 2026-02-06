@@ -1,4 +1,4 @@
-import { AuditAction } from '../enums/index.js';
+import { AuditAction, EntityType } from '../enums/index.js';
 
 /**
  * Log de Auditoria
@@ -8,7 +8,7 @@ export interface AuditLog {
   id: string;
   userId: string;
   action: AuditAction;
-  entityType: 'CONTRACT' | 'USER' | 'AUTH';
+  entityType: EntityType;
   entityId: string | null;
   metadata: Record<string, unknown> | null;
   ipAddress: string | null;
@@ -33,7 +33,7 @@ export interface AuditLogWithUser extends AuditLog {
 export interface AuditLogFilters {
   userId?: string;
   action?: AuditAction;
-  entityType?: 'CONTRACT' | 'USER' | 'AUTH';
+  entityType?: EntityType;
   entityId?: string;
   startDate?: Date;
   endDate?: Date;

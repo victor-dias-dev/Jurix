@@ -9,6 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        border: '#2a3550',
         // Paleta principal - tons de azul escuro profissional
         primary: {
           50: '#eef4ff',
@@ -31,23 +32,32 @@ const config: Config = {
         // Feedback colors
         success: {
           50: '#f0fdf4',
+          400: '#4ade80',
           500: '#22c55e',
           600: '#16a34a',
         },
         warning: {
           50: '#fffbeb',
+          400: '#fbbf24',
           500: '#f59e0b',
           600: '#d97706',
         },
         danger: {
           50: '#fef2f2',
+          400: '#f87171',
           500: '#ef4444',
           600: '#dc2626',
         },
+        info: {
+          50: '#eff6ff',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+        },
       },
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'monospace'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
       },
       boxShadow: {
         'glow': '0 0 20px rgba(54, 104, 252, 0.15)',

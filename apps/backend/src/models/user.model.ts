@@ -11,7 +11,7 @@ import {
   BeforeCreate,
   BeforeUpdate,
 } from 'sequelize-typescript';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { UserRole, UserStatus } from '@jurix/shared-types';
 import { Contract } from './contract.model';
 import { AuditLog } from './audit-log.model';
@@ -37,6 +37,7 @@ export class User extends Model {
   @Column({
     type: DataType.STRING(255),
     allowNull: false,
+    field: 'password_hash',
   })
   declare password: string;
 

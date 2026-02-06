@@ -32,31 +32,36 @@ export async function up(knex: Knex): Promise<void> {
   `);
 
   // Criar tabela de logs de auditoria (imutável)
-  await knex.schema.createTable('audit_logs', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-    table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');
-    table.specificType('action', 'audit_action').notNullable();
-    table.specificType('entity_type', 'entity_type').notNullable();
-    table.uuid('entity_id').nullable();
-    table.jsonb('metadata').nullable();
-    table.string('ip_address', 50).nullable();
-    table.string('user_agent', 500).nullable();
-    table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+  const hasAuditLogsTable = await knex.schema.hasTable('audit_logs');
+  if (!hasAuditLogsTable) {
+    await knex.schema.createTable('audit_logs', (table) => {
+      table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+      table.uuid('user_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');
+      table.specificType('action', 'audit_action').notNullable();
+      table.specificType('entity_type', 'entity_type').notNullable();
+      table.uuid('entity_id').nullable();
+      table.jsonb('metadata').nullable();
+      table.string('ip_address', 50).nullable();
+      table.string('user_agent', 500).nullable();
+      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
 
-    // Índices para consultas de auditoria
-    table.index('user_id');
-    table.index('action');
-    table.index('entity_type');
-    table.index('entity_id');
-    table.index('created_at');
-  });
+      // Índices para consultas de auditoria
+      table.index('user_id');
+      table.index('action');
+      table.index('entity_type');
+      table.index('entity_id');
+      table.index('created_at');
+    });
+  }
 
   // Criar regra para prevenir UPDATE e DELETE (logs são imutáveis)
   await knex.raw(`
+    DROP RULE IF EXISTS no_update_audit_logs ON audit_logs;
     CREATE RULE no_update_audit_logs AS ON UPDATE TO audit_logs DO INSTEAD NOTHING;
   `);
 
   await knex.raw(`
+    DROP RULE IF EXISTS no_delete_audit_logs ON audit_logs;
     CREATE RULE no_delete_audit_logs AS ON DELETE TO audit_logs DO INSTEAD NOTHING;
   `);
 }

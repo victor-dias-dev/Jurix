@@ -22,7 +22,7 @@ import { AuditModule } from './modules/audit/audit.module';
       useFactory: (configService: ConfigService) => ({
         dialect: 'postgres',
         host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
+        port: configService.get<number>('DB_PORT', 5433),
         username: configService.get<string>('DB_USERNAME', 'jurix'),
         password: configService.get<string>('DB_PASSWORD', 'jurix_dev_2024'),
         database: configService.get<string>('DB_DATABASE', 'jurix_db'),

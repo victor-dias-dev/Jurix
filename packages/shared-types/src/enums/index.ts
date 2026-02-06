@@ -25,12 +25,23 @@ export enum UserStatus {
 export enum ContractStatus {
   /** Rascunho - pode ser editado livremente */
   DRAFT = 'DRAFT',
-  /** Em análise - visível para VIEWER, não pode ser editado */
+  /** Em revisão - visível para VIEWER, não pode ser editado */
   IN_REVIEW = 'IN_REVIEW',
   /** Aprovado - somente leitura, não pode ser excluído */
   APPROVED = 'APPROVED',
   /** Rejeitado - pode retornar para DRAFT */
   REJECTED = 'REJECTED',
+}
+
+/**
+ * Tipos de entidade para auditoria
+ */
+export enum EntityType {
+  USER = 'USER',
+  CONTRACT = 'CONTRACT',
+  CONTRACT_VERSION = 'CONTRACT_VERSION',
+  SESSION = 'SESSION',
+  AUTH = 'AUTH',
 }
 
 /**

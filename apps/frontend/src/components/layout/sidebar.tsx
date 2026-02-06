@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -27,10 +27,16 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const filteredNav = navigation.filter(
-    (item) => !item.roles || (user && item.roles.includes(user.role))
-  );
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Mostrar todos os itens até montar para evitar hydration mismatch
+  const filteredNav = mounted
+    ? navigation.filter((item) => !item.roles || (user && item.roles.includes(user.role)))
+    : navigation.filter((item) => !item.roles);
 
   return (
     <>
@@ -102,10 +108,14 @@ export function Sidebar() {
         {/* User info at bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800">
           <div className="px-4 py-3 rounded-lg bg-slate-800/50">
-            <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+            <p className="text-sm font-medium text-white truncate">
+              {mounted ? user?.name : '...'}
+            </p>
+            <p className="text-xs text-slate-500 truncate">
+              {mounted ? user?.email : '...'}
+            </p>
             <span className="inline-block mt-2 px-2 py-0.5 text-xs rounded bg-primary-600/20 text-primary-400">
-              {user?.role}
+              {mounted ? user?.role : '...'}
             </span>
           </div>
         </div>

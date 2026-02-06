@@ -19,22 +19,25 @@ export async function up(knex: Knex): Promise<void> {
   `);
 
   // Criar tabela de usuários
-  await knex.schema.createTable('users', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-    table.string('email', 255).notNullable().unique();
-    table.string('password', 255).notNullable();
-    table.string('name', 255).notNullable();
-    table.specificType('role', 'user_role').notNullable().defaultTo('VIEWER');
-    table.specificType('status', 'user_status').notNullable().defaultTo('ACTIVE');
-    table.string('refresh_token', 500).nullable();
-    table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
-    table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
+  const hasUsersTable = await knex.schema.hasTable('users');
+  if (!hasUsersTable) {
+    await knex.schema.createTable('users', (table) => {
+      table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+      table.string('email', 255).notNullable().unique();
+      table.string('password_hash', 255).notNullable();
+      table.string('name', 255).notNullable();
+      table.specificType('role', 'user_role').notNullable().defaultTo('VIEWER');
+      table.specificType('status', 'user_status').notNullable().defaultTo('ACTIVE');
+      table.string('refresh_token', 500).nullable();
+      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+      table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
 
-    // Índices
-    table.index('email');
-    table.index('role');
-    table.index('status');
-  });
+      // Índices
+      table.index('email');
+      table.index('role');
+      table.index('status');
+    });
+  }
 
   // Trigger para atualizar updated_at
   await knex.raw(`
@@ -48,6 +51,7 @@ export async function up(knex: Knex): Promise<void> {
   `);
 
   await knex.raw(`
+    DROP TRIGGER IF EXISTS update_users_updated_at ON users;
     CREATE TRIGGER update_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW

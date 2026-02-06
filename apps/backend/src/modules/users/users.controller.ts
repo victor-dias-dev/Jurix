@@ -15,7 +15,14 @@ import {
 import { Request } from 'express';
 
 import { UsersService } from './users.service';
-import { createUserSchema, CreateUserDto, updateUserSchema, UpdateUserDto } from './schemas';
+import {
+  createUserSchema,
+  CreateUserDto,
+  updateUserSchema,
+  UpdateUserDto,
+  queryUsersSchema,
+  QueryUsersDto,
+} from './schemas';
 import { ZodValidationPipe } from '../../common/pipes';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { CurrentUser, Roles } from '../auth/decorators';
@@ -60,20 +67,11 @@ export class UsersController {
 
   @Get()
   @Roles(UserRole.ADMIN)
+  @UsePipes(new ZodValidationPipe(queryUsersSchema))
   async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
-    @Query('role') role?: UserRole,
-    @Query('status') status?: UserStatus,
+    @Query() query: QueryUsersDto,
   ): Promise<PaginatedResponse<UserPublic>> {
-    return this.usersService.findAll({
-      page,
-      limit,
-      search,
-      role,
-      status,
-    });
+    return this.usersService.findAll(query);
   }
 
   @Get('me')

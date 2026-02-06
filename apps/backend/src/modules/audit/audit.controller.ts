@@ -3,14 +3,21 @@ import {
   Get,
   Query,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 
 import { AuditService } from './audit.service';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/decorators';
-import { UserRole, AuditAction, PaginatedResponse, ApiResponse } from '@jurix/shared-types';
+import { ZodValidationPipe } from '../../common/pipes';
+import {
+  queryAuditSchema,
+  QueryAuditDto,
+  queryAuditByEntitySchema,
+  QueryAuditByEntityDto,
+} from './schemas';
+import { UserRole, PaginatedResponse, ApiResponse } from '@jurix/shared-types';
 import { AuditLog } from '../../models';
-import { EntityType } from '../../models/audit-log.model';
 
 @Controller('audit')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -19,35 +26,20 @@ export class AuditController {
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.LEGAL)
+  @UsePipes(new ZodValidationPipe(queryAuditSchema))
   async findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('userId') userId?: string,
-    @Query('action') action?: AuditAction,
-    @Query('entityType') entityType?: EntityType,
-    @Query('entityId') entityId?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query() query: QueryAuditDto,
   ): Promise<PaginatedResponse<AuditLog>> {
-    return this.auditService.findAll({
-      page,
-      limit,
-      userId,
-      action,
-      entityType,
-      entityId,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-    });
+    return this.auditService.findAll(query);
   }
 
   @Get('entity')
   @Roles(UserRole.ADMIN, UserRole.LEGAL)
+  @UsePipes(new ZodValidationPipe(queryAuditByEntitySchema))
   async findByEntity(
-    @Query('entityType') entityType: EntityType,
-    @Query('entityId') entityId: string,
+    @Query() query: QueryAuditByEntityDto,
   ): Promise<ApiResponse<AuditLog[]>> {
-    const data = await this.auditService.findByEntity(entityType, entityId);
+    const data = await this.auditService.findByEntity(query.entityType, query.entityId);
 
     return {
       success: true,

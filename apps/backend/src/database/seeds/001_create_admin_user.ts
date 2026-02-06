@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 export async function seed(knex: Knex): Promise<void> {
   // Limpar tabela (cuidado em produção!)
@@ -17,7 +17,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.raw('uuid_generate_v4()'),
       email: 'admin@jurix.com',
-      password: hashedPassword,
+      password_hash: hashedPassword,
       name: 'Administrador',
       role: 'ADMIN',
       status: 'ACTIVE',
@@ -25,7 +25,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.raw('uuid_generate_v4()'),
       email: 'legal@jurix.com',
-      password: await bcrypt.hash('Legal@123', salt),
+      password_hash: await bcrypt.hash('Legal@123', salt),
       name: 'Advogado Legal',
       role: 'LEGAL',
       status: 'ACTIVE',
@@ -33,7 +33,7 @@ export async function seed(knex: Knex): Promise<void> {
     {
       id: knex.raw('uuid_generate_v4()'),
       email: 'viewer@jurix.com',
-      password: await bcrypt.hash('Viewer@123', salt),
+      password_hash: await bcrypt.hash('Viewer@123', salt),
       name: 'Visualizador',
       role: 'VIEWER',
       status: 'ACTIVE',

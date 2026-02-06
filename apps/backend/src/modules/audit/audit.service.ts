@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 
 import { AuditLog, User } from '../../models';
-import { AuditAction, AuditLogFilters, PaginatedResponse } from '@jurix/shared-types';
-import { EntityType } from '../../models/audit-log.model';
+import { AuditAction, EntityType, AuditLogFilters, PaginatedResponse } from '@jurix/shared-types';
 
 interface CreateAuditLogDto {
   userId: string;
@@ -42,7 +41,8 @@ export class AuditService {
     const limit = filters.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    const where: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: WhereOptions<any> = {};
 
     if (filters.userId) {
       where.userId = filters.userId;
@@ -60,14 +60,15 @@ export class AuditService {
       where.entityId = filters.entityId;
     }
 
-    if (filters.startDate || filters.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        (where.createdAt as Record<string, unknown>)[Op.gte] = filters.startDate;
-      }
-      if (filters.endDate) {
-        (where.createdAt as Record<string, unknown>)[Op.lte] = filters.endDate;
-      }
+    if (filters.startDate && filters.endDate) {
+      where.createdAt = {
+        [Op.gte]: filters.startDate,
+        [Op.lte]: filters.endDate,
+      };
+    } else if (filters.startDate) {
+      where.createdAt = { [Op.gte]: filters.startDate };
+    } else if (filters.endDate) {
+      where.createdAt = { [Op.lte]: filters.endDate };
     }
 
     const { count, rows } = await this.auditLogModel.findAndCountAll({

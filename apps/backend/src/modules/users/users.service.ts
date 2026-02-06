@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 
 import { User } from '../../models';
 import { AuditService } from '../audit/audit.service';
@@ -81,14 +81,16 @@ export class UsersService {
     const limit = options.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    const where: Record<string, unknown> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: WhereOptions<any> = {};
 
     if (options.search) {
-      where[Op.or] = [
+      (where as Record<string, unknown>)[Op.or as unknown as string] = [
         { name: { [Op.iLike]: `%${options.search}%` } },
         { email: { [Op.iLike]: `%${options.search}%` } },
       ];
     }
+
 
     if (options.role) {
       where.role = options.role;

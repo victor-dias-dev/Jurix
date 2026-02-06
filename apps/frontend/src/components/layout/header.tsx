@@ -10,7 +10,12 @@ export function Header() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -47,8 +52,8 @@ export function Header() {
               <User className="w-5 h-5 text-primary-400" />
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-white">{user?.name}</p>
-              <p className="text-xs text-slate-500">{user?.role}</p>
+              <p className="text-sm font-medium text-white">{mounted ? user?.name : '...'}</p>
+              <p className="text-xs text-slate-500">{mounted ? user?.role : '...'}</p>
             </div>
             <ChevronDown
               className={cn(
@@ -63,8 +68,8 @@ export function Header() {
             <div className="absolute right-0 mt-2 w-56 rounded-xl bg-slate-900 border border-slate-800 shadow-xl animate-slide-down">
               <div className="p-2">
                 <div className="px-3 py-2 border-b border-slate-800 mb-2">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-slate-500">{user?.email}</p>
+                  <p className="text-sm font-medium text-white">{mounted ? user?.name : '...'}</p>
+                  <p className="text-xs text-slate-500">{mounted ? user?.email : '...'}</p>
                 </div>
                 <button
                   onClick={handleLogout}

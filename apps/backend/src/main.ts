@@ -16,7 +16,7 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  const port = configService.get<number>('PORT', 3001);
+  const port = configService.get<number>('BACKEND_PORT', 3001);
   await app.listen(port);
 
   console.log(`🚀 Jurix Backend running on http://localhost:${port}/api`);

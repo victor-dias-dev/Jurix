@@ -11,24 +11,28 @@ export async function up(knex: Knex): Promise<void> {
   `);
 
   // Criar tabela de contratos
-  await knex.schema.createTable('contracts', (table) => {
-    table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
-    table.string('title', 500).notNullable();
-    table.text('content').notNullable();
-    table.specificType('status', 'contract_status').notNullable().defaultTo('DRAFT');
-    table.uuid('created_by_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');
-    table.integer('current_version').notNullable().defaultTo(1);
-    table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
-    table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
+  const hasContractsTable = await knex.schema.hasTable('contracts');
+  if (!hasContractsTable) {
+    await knex.schema.createTable('contracts', (table) => {
+      table.uuid('id').primary().defaultTo(knex.raw('uuid_generate_v4()'));
+      table.string('title', 500).notNullable();
+      table.text('content').notNullable();
+      table.specificType('status', 'contract_status').notNullable().defaultTo('DRAFT');
+      table.uuid('created_by_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');
+      table.integer('current_version').notNullable().defaultTo(1);
+      table.timestamp('created_at').defaultTo(knex.fn.now()).notNullable();
+      table.timestamp('updated_at').defaultTo(knex.fn.now()).notNullable();
 
-    // Índices
-    table.index('status');
-    table.index('created_by_id');
-    table.index('created_at');
-  });
+      // Índices
+      table.index('status');
+      table.index('created_by_id');
+      table.index('created_at');
+    });
+  }
 
   // Trigger para atualizar updated_at
   await knex.raw(`
+    DROP TRIGGER IF EXISTS update_contracts_updated_at ON contracts;
     CREATE TRIGGER update_contracts_updated_at
     BEFORE UPDATE ON contracts
     FOR EACH ROW

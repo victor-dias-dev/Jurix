@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { UserPublic, UserRole } from '@jurix/shared-types';
 import { authApi } from '@/lib/api';
 
@@ -27,6 +27,26 @@ const initialState: AuthState = {
   refreshToken: null,
   isLoading: false,
   error: null,
+};
+
+// Custom storage that syncs to both localStorage and cookie
+const cookieStorage: StateStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(name);
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(name, value);
+    // Also set cookie for middleware
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(name);
+    // Also remove cookie
+    document.cookie = `${name}=; path=/; max-age=0`;
+  },
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -103,7 +123,7 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'jurix-auth',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => cookieStorage),
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

@@ -9,10 +9,8 @@ import {
   ForeignKey,
   BelongsTo,
 } from 'sequelize-typescript';
-import { AuditAction } from '@jurix/shared-types';
+import { AuditAction, EntityType } from '@jurix/shared-types';
 import { User } from './user.model';
-
-export type EntityType = 'CONTRACT' | 'USER' | 'AUTH';
 
 @Table({
   tableName: 'audit_logs',
@@ -40,7 +38,7 @@ export class AuditLog extends Model {
   declare action: AuditAction;
 
   @Column({
-    type: DataType.ENUM('CONTRACT', 'USER', 'AUTH'),
+    type: DataType.ENUM(...Object.values(EntityType)),
     allowNull: false,
     field: 'entity_type',
   })

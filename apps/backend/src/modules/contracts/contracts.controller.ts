@@ -24,6 +24,8 @@ import {
   UpdateContractDto,
   rejectContractSchema,
   RejectContractDto,
+  queryContractsSchema,
+  QueryContractsDto,
 } from './schemas';
 import { ZodValidationPipe } from '../../common/pipes';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
@@ -68,20 +70,12 @@ export class ContractsController {
   }
 
   @Get()
+  @UsePipes(new ZodValidationPipe(queryContractsSchema))
   async findAll(
     @CurrentUser() user: User,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('status') status?: ContractStatus,
-    @Query('createdById') createdById?: string,
-    @Query('search') search?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
+    @Query() query: QueryContractsDto,
   ): Promise<PaginatedResponse<ContractWithCreator>> {
-    return this.contractsService.findAll(
-      { page, limit, status, createdById, search, sortBy, sortOrder },
-      user,
-    );
+    return this.contractsService.findAll(query, user);
   }
 
   @Get(':id')
