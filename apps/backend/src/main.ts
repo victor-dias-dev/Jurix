@@ -14,10 +14,10 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  const port = configService.get<number>('BACKEND_PORT', 3001);
-  await app.listen(port);
+  const port = configService.get<number>('PORT') || configService.get<number>('BACKEND_PORT', 3001);
+  await app.listen(port, '0.0.0.0');
 
-  console.log(`Jurix Backend running on http://localhost:${port}/api`);
+  console.log(`Jurix Backend running on port ${port}`);
 }
 
 bootstrap();
