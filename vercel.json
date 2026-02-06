@@ -1,7 +1,8 @@
 {
-  "buildCommand": "pnpm --filter @jurix/shared-types build && pnpm --filter @jurix/frontend build",
-  "outputDirectory": "apps/frontend/.next",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @jurix/frontend build",
+  "outputDirectory": "apps/frontend/.next",
   "framework": "nextjs"
 }
 

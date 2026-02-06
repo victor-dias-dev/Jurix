@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3002",
+    "prebuild": "cd ../.. && pnpm --filter @jurix/shared-types build",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
