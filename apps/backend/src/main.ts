@@ -7,9 +7,14 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+  const corsOrigin = configService.get<string>('CORS_ORIGIN', 'http://localhost:3000');
+  const origins = corsOrigin.split(',').map(o => o.trim());
+  
   app.enableCors({
-    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: origins.length === 1 ? origins[0] : origins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
   app.setGlobalPrefix('api');
