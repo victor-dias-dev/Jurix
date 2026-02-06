@@ -14,6 +14,7 @@ import {
   UserRole,
   UserStatus,
   AuditAction,
+  EntityType,
   PaginatedResponse,
   UserPublic,
 } from '@jurix/shared-types';
@@ -40,7 +41,6 @@ export class UsersService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<UserPublic> {
-    // Verificar se email já existe
     const existingUser = await this.userModel.findOne({
       where: { email: createUserDto.email },
     });
@@ -49,7 +49,6 @@ export class UsersService {
       throw new ConflictException('Email já cadastrado');
     }
 
-    // Criar usuário
     const user = await this.userModel.create({
       email: createUserDto.email,
       password: createUserDto.password,
@@ -58,11 +57,10 @@ export class UsersService {
       status: UserStatus.ACTIVE,
     });
 
-    // Log de auditoria
     await this.auditService.log({
       userId: createdBy.id,
       action: AuditAction.USER_CREATED,
-      entityType: 'USER',
+      entityType: EntityType.USER,
       entityId: user.id,
       metadata: {
         email: user.email,
@@ -81,8 +79,7 @@ export class UsersService {
     const limit = options.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: WhereOptions<any> = {};
+    const where: WhereOptions<User> = {};
 
     if (options.search) {
       (where as Record<string, unknown>)[Op.or as unknown as string] = [
@@ -90,7 +87,6 @@ export class UsersService {
         { email: { [Op.iLike]: `%${options.search}%` } },
       ];
     }
-
 
     if (options.role) {
       where.role = options.role;
@@ -139,7 +135,6 @@ export class UsersService {
   ): Promise<UserPublic> {
     const user = await this.findById(id);
 
-    // Não permitir alterar o próprio role (exceto ADMIN)
     if (
       updateUserDto.role &&
       updatedBy.id === user.id &&
@@ -150,11 +145,10 @@ export class UsersService {
 
     await user.update(updateUserDto);
 
-    // Log de auditoria
     await this.auditService.log({
       userId: updatedBy.id,
       action: AuditAction.USER_UPDATED,
-      entityType: 'USER',
+      entityType: EntityType.USER,
       entityId: user.id,
       metadata: {
         changes: updateUserDto,
@@ -174,18 +168,16 @@ export class UsersService {
   ): Promise<void> {
     const user = await this.findById(id);
 
-    // Não permitir desativar a si mesmo
     if (user.id === deactivatedBy.id) {
       throw new ForbiddenException('Você não pode desativar sua própria conta');
     }
 
     await user.update({ status: UserStatus.INACTIVE, refreshToken: null });
 
-    // Log de auditoria
     await this.auditService.log({
       userId: deactivatedBy.id,
       action: AuditAction.USER_DEACTIVATED,
-      entityType: 'USER',
+      entityType: EntityType.USER,
       entityId: user.id,
       ipAddress,
       userAgent,

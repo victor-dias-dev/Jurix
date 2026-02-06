@@ -53,7 +53,6 @@ async function request<T>(
   return data as T;
 }
 
-// Auth endpoints
 export const authApi = {
   login: (email: string, password: string) =>
     request<ApiResponse<AuthResponse>>('/auth/login', {
@@ -74,7 +73,6 @@ export const authApi = {
     }),
 };
 
-// Generic request function for authenticated endpoints
 export function createAuthenticatedApi(getToken: () => string | null) {
   return {
     get: <T>(endpoint: string) => {
@@ -104,4 +102,3 @@ export function createAuthenticatedApi(getToken: () => string | null) {
 }
 
 export { ApiError };
-

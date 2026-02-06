@@ -9,13 +9,11 @@ import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
-    // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
 
-    // Database
     SequelizeModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,7 +25,7 @@ import { AuditModule } from './modules/audit/audit.module';
         password: configService.get<string>('DB_PASSWORD', 'jurix_dev_2024'),
         database: configService.get<string>('DB_DATABASE', 'jurix_db'),
         autoLoadModels: true,
-        synchronize: false, // Usaremos migrations com Knex
+        synchronize: false,
         logging: configService.get<string>('NODE_ENV') === 'development',
         define: {
           timestamps: true,
@@ -36,7 +34,6 @@ import { AuditModule } from './modules/audit/audit.module';
       }),
     }),
 
-    // Feature modules
     AuthModule,
     UsersModule,
     ContractsModule,

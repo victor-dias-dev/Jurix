@@ -15,6 +15,7 @@ import {
   ContractStatus,
   UserRole,
   AuditAction,
+  EntityType,
   PaginatedResponse,
   ContractWithCreator,
   canViewContract,
@@ -52,7 +53,6 @@ export class ContractsService {
     const transaction = await this.sequelize.transaction();
 
     try {
-      // Criar contrato
       const contract = await this.contractModel.create(
         {
           title: createContractDto.title,
@@ -64,7 +64,6 @@ export class ContractsService {
         { transaction },
       );
 
-      // Criar versão inicial
       await this.contractVersionModel.create(
         {
           contractId: contract.id,
@@ -78,11 +77,10 @@ export class ContractsService {
         { transaction },
       );
 
-      // Log de auditoria
       await this.auditService.log({
         userId: user.id,
         action: AuditAction.CONTRACT_CREATED,
-        entityType: 'CONTRACT',
+        entityType: EntityType.CONTRACT,
         entityId: contract.id,
         metadata: { title: contract.title },
         ipAddress,
@@ -108,7 +106,6 @@ export class ContractsService {
 
     const where: Record<string, unknown> = {};
 
-    // VIEWER não pode ver DRAFT
     if (user.role === UserRole.VIEWER) {
       where.status = { [Op.ne]: ContractStatus.DRAFT };
     }
@@ -178,7 +175,6 @@ export class ContractsService {
       throw new NotFoundException('Contrato não encontrado');
     }
 
-    // Verificar permissão de visualização
     if (!canViewContract(user.role, contract.status)) {
       throw new ForbiddenException('Você não tem permissão para ver este contrato');
     }
@@ -195,7 +191,6 @@ export class ContractsService {
   ): Promise<Contract> {
     const contract = await this.findById(id, user);
 
-    // Verificar se pode editar
     if (!canEditContract(contract.status)) {
       throw new ForbiddenException(
         `Contratos em status ${contract.status} não podem ser editados`,
@@ -207,7 +202,6 @@ export class ContractsService {
     try {
       const newVersion = contract.currentVersion + 1;
 
-      // Atualizar contrato
       await contract.update(
         {
           ...updateContractDto,
@@ -216,7 +210,6 @@ export class ContractsService {
         { transaction },
       );
 
-      // Criar nova versão
       await this.contractVersionModel.create(
         {
           contractId: contract.id,
@@ -230,11 +223,10 @@ export class ContractsService {
         { transaction },
       );
 
-      // Log de auditoria
       await this.auditService.log({
         userId: user.id,
         action: AuditAction.CONTRACT_UPDATED,
-        entityType: 'CONTRACT',
+        entityType: EntityType.CONTRACT,
         entityId: contract.id,
         metadata: { version: newVersion, changes: updateContractDto },
         ipAddress,
@@ -258,21 +250,18 @@ export class ContractsService {
   ): Promise<void> {
     const contract = await this.findById(id, user);
 
-    // Apenas ADMIN pode excluir
     if (user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Apenas administradores podem excluir contratos');
     }
 
-    // Contratos aprovados não podem ser excluídos
     if (contract.status === ContractStatus.APPROVED) {
       throw new ForbiddenException('Contratos aprovados não podem ser excluídos');
     }
 
-    // Log de auditoria (antes de excluir)
     await this.auditService.log({
       userId: user.id,
       action: AuditAction.CONTRACT_DELETED,
-      entityType: 'CONTRACT',
+      entityType: EntityType.CONTRACT,
       entityId: contract.id,
       metadata: { title: contract.title, status: contract.status },
       ipAddress,
@@ -362,7 +351,6 @@ export class ContractsService {
   ): Promise<Contract> {
     const contract = await this.findById(id, user);
 
-    // Validar transição de status
     if (!isValidStatusTransition(contract.status, newStatus)) {
       throw new BadRequestException(
         `Transição de ${contract.status} para ${newStatus} não é permitida`,
@@ -374,7 +362,6 @@ export class ContractsService {
     try {
       const newVersion = contract.currentVersion + 1;
 
-      // Atualizar contrato
       await contract.update(
         {
           status: newStatus,
@@ -383,7 +370,6 @@ export class ContractsService {
         { transaction },
       );
 
-      // Criar nova versão
       await this.contractVersionModel.create(
         {
           contractId: contract.id,
@@ -397,11 +383,10 @@ export class ContractsService {
         { transaction },
       );
 
-      // Log de auditoria
       await this.auditService.log({
         userId: user.id,
         action: auditAction,
-        entityType: 'CONTRACT',
+        entityType: EntityType.CONTRACT,
         entityId: contract.id,
         metadata: {
           previousStatus: contract.status,
@@ -423,7 +408,7 @@ export class ContractsService {
   }
 
   async getVersions(id: string, user: User): Promise<ContractVersion[]> {
-    await this.findById(id, user); // Verifica permissão
+    await this.findById(id, user);
 
     return this.contractVersionModel.findAll({
       where: { contractId: id },

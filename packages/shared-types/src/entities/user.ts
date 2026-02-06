@@ -1,9 +1,5 @@
 import { UserRole, UserStatus } from '../enums/index.js';
 
-/**
- * Entidade Usuário
- * Representa uma pessoa autenticada no sistema
- */
 export interface User {
   id: string;
   email: string;
@@ -14,9 +10,6 @@ export interface User {
   updatedAt: Date;
 }
 
-/**
- * Usuário sem dados sensíveis (para responses)
- */
 export interface UserPublic {
   id: string;
   email: string;
@@ -25,9 +18,6 @@ export interface UserPublic {
   status: UserStatus;
 }
 
-/**
- * Dados para criação de usuário
- */
 export interface CreateUserDTO {
   email: string;
   password: string;
@@ -35,12 +25,8 @@ export interface CreateUserDTO {
   role: UserRole;
 }
 
-/**
- * Dados para atualização de usuário
- */
 export interface UpdateUserDTO {
   name?: string;
   role?: UserRole;
   status?: UserStatus;
 }
-

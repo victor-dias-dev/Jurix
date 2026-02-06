@@ -1,9 +1,5 @@
 import { AuditAction, EntityType } from '../enums/index.js';
 
-/**
- * Log de Auditoria
- * Registro imutável de ações relevantes executadas no sistema
- */
 export interface AuditLog {
   id: string;
   userId: string;
@@ -16,9 +12,6 @@ export interface AuditLog {
   createdAt: Date;
 }
 
-/**
- * Log com informações do usuário
- */
 export interface AuditLogWithUser extends AuditLog {
   user: {
     id: string;
@@ -27,9 +20,6 @@ export interface AuditLogWithUser extends AuditLog {
   };
 }
 
-/**
- * Filtros para busca de logs
- */
 export interface AuditLogFilters {
   userId?: string;
   action?: AuditAction;
@@ -38,4 +28,3 @@ export interface AuditLogFilters {
   startDate?: Date;
   endDate?: Date;
 }
-

@@ -29,7 +29,6 @@ const initialState: AuthState = {
   error: null,
 };
 
-// Custom storage that syncs to both localStorage and cookie
 const cookieStorage: StateStorage = {
   getItem: (name: string) => {
     if (typeof window === 'undefined') return null;
@@ -38,13 +37,11 @@ const cookieStorage: StateStorage = {
   setItem: (name: string, value: string) => {
     if (typeof window === 'undefined') return;
     localStorage.setItem(name, value);
-    // Also set cookie for middleware
     document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
   },
   removeItem: (name: string) => {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(name);
-    // Also remove cookie
     document.cookie = `${name}=; path=/; max-age=0`;
   },
 };
@@ -83,7 +80,6 @@ export const useAuthStore = create<AuthStore>()(
             await authApi.logout(accessToken);
           }
         } catch {
-          // Ignora erros no logout
         } finally {
           set(initialState);
         }
@@ -133,6 +129,4 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-// Helper hook para obter o token
 export const useAccessToken = () => useAuthStore((state) => state.accessToken);
-

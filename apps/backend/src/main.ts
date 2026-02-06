@@ -7,19 +7,17 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  // CORS
   app.enableCors({
     origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'),
     credentials: true,
   });
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
   const port = configService.get<number>('BACKEND_PORT', 3001);
   await app.listen(port);
 
-  console.log(`🚀 Jurix Backend running on http://localhost:${port}/api`);
+  console.log(`Jurix Backend running on http://localhost:${port}/api`);
 }
 
 bootstrap();

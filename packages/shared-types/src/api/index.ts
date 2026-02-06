@@ -1,15 +1,9 @@
-/**
- * Resposta padrão da API para sucesso
- */
 export interface ApiResponse<T> {
   success: true;
   data: T;
   message?: string;
 }
 
-/**
- * Resposta padrão da API para erro
- */
 export interface ApiErrorResponse {
   success: false;
   error: {
@@ -19,9 +13,6 @@ export interface ApiErrorResponse {
   };
 }
 
-/**
- * Resposta paginada
- */
 export interface PaginatedResponse<T> {
   success: true;
   data: T[];
@@ -33,25 +24,16 @@ export interface PaginatedResponse<T> {
   };
 }
 
-/**
- * Parâmetros de paginação
- */
 export interface PaginationParams {
   page?: number;
   limit?: number;
 }
 
-/**
- * Parâmetros de ordenação
- */
 export interface SortParams {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
 
-/**
- * Filtros para listagem de contratos
- */
 export interface ContractFilters extends PaginationParams, SortParams {
   status?: string;
   createdById?: string;
@@ -59,4 +41,3 @@ export interface ContractFilters extends PaginationParams, SortParams {
   startDate?: string;
   endDate?: string;
 }
-

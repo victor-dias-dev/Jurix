@@ -41,8 +41,7 @@ export class AuditService {
     const limit = filters.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: WhereOptions<any> = {};
+    const where: WhereOptions<AuditLog> = {};
 
     if (filters.userId) {
       where.userId = filters.userId;
