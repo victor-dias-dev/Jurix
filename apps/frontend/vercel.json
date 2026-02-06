@@ -1,7 +1,7 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm --filter @jurix/shared-types build && cd apps/frontend && pnpm build",
+  "installCommand": "cd ../.. && pnpm install",
   "outputDirectory": ".next"
 }
 
