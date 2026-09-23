@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
@@ -27,7 +28,7 @@ function parseDatabaseUrl(url: string) {
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: resolve(__dirname, '../../../.env'),
     }),
 
     SequelizeModule.forRootAsync({
@@ -38,7 +39,7 @@ function parseDatabaseUrl(url: string) {
         const dbConfig = databaseUrl ? parseDatabaseUrl(databaseUrl) : null;
 
         const host = dbConfig?.host ?? configService.get<string>('DB_HOST', 'localhost');
-        const port = dbConfig?.port ?? configService.get<number>('DB_PORT', 5432);
+        const port = dbConfig?.port ?? Number(configService.get<string>('DB_PORT') ?? 5433);
 
         console.log(`[Database] Connecting to ${host}:${port} (using ${databaseUrl ? 'DATABASE_URL' : 'individual vars'})`);
 

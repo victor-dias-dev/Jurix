@@ -29,7 +29,6 @@ import { CurrentUser, Roles } from '../auth/decorators';
 import { User } from '../../models';
 import {
   UserRole,
-  UserStatus,
   ApiResponse,
   PaginatedResponse,
   UserPublic,

@@ -7,7 +7,7 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Op, WhereOptions } from 'sequelize';
 
-import { User } from '../../models';
+import { RefreshToken, User } from '../../models';
 import { AuditService } from '../audit/audit.service';
 import { CreateUserDto, UpdateUserDto } from './schemas';
 import {
@@ -32,6 +32,8 @@ export class UsersService {
   constructor(
     @InjectModel(User)
     private readonly userModel: typeof User,
+    @InjectModel(RefreshToken)
+    private readonly refreshTokenModel: typeof RefreshToken,
     private readonly auditService: AuditService,
   ) {}
 
@@ -172,7 +174,11 @@ export class UsersService {
       throw new ForbiddenException('Você não pode desativar sua própria conta');
     }
 
-    await user.update({ status: UserStatus.INACTIVE, refreshToken: null });
+    await user.update({ status: UserStatus.INACTIVE });
+    await this.refreshTokenModel.update(
+      { isRevoked: true },
+      { where: { userId: user.id, isRevoked: false } },
+    );
 
     await this.auditService.log({
       userId: deactivatedBy.id,

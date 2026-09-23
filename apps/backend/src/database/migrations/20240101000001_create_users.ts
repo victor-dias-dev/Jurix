@@ -26,7 +26,6 @@ export async function up(knex: Knex): Promise<void> {
     table.string('name', 255).notNullable();
     table.specificType('role', 'user_role').notNullable().defaultTo('VIEWER');
     table.specificType('status', 'user_status').notNullable().defaultTo('ACTIVE');
-    table.string('refresh_token', 500).nullable();
     table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
     table.timestamp('updated_at').notNullable().defaultTo(knex.fn.now());
 

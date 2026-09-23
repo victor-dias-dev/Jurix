@@ -61,13 +61,6 @@ export class User extends Model {
   })
   declare status: UserStatus;
 
-  @Column({
-    type: DataType.STRING(500),
-    allowNull: true,
-    field: 'refresh_token',
-  })
-  declare refreshToken: string | null;
-
   @CreatedAt
   @Column({ field: 'created_at' })
   declare createdAt: Date;

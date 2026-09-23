@@ -11,7 +11,7 @@
     "build:backend": "pnpm --filter @jurix/backend build",
     "build:frontend": "pnpm --filter @jurix/frontend build",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test",
+    "test": "pnpm --filter @jurix/shared-types build && pnpm -r --if-present test",
     "db:migrate": "pnpm --filter @jurix/backend db:migrate",
     "db:seed": "pnpm --filter @jurix/backend db:seed"
   },
@@ -22,8 +22,8 @@
     "compliance",
     "audit"
   ],
-  "author": "",
-  "license": "PRIVATE",
+  "author": "victor-dias-dev",
+  "license": "MIT",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"

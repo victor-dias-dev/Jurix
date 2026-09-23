@@ -3,7 +3,9 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function seed(knex: Knex): Promise<void> {
-  await knex.raw('TRUNCATE TABLE audit_logs, contract_versions, contracts, users RESTART IDENTITY CASCADE');
+  await knex.raw(
+    'TRUNCATE TABLE refresh_tokens, audit_logs, contract_versions, contracts, users RESTART IDENTITY CASCADE',
+  );
 
   const salt = await bcrypt.genSalt(10);
 

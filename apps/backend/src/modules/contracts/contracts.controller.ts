@@ -33,7 +33,6 @@ import { CurrentUser, Roles } from '../auth/decorators';
 import { Contract, ContractVersion, User } from '../../models';
 import {
   UserRole,
-  ContractStatus,
   ApiResponse,
   PaginatedResponse,
   ContractWithCreator,
