@@ -1,79 +1,96 @@
 # Jurix
 
+[Português](README.pt-BR.md)
+
 [![CI](https://github.com/victor-dias-dev/Jurix/actions/workflows/ci.yml/badge.svg)](https://github.com/victor-dias-dev/Jurix/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-Jurix is a reference implementation of a corporate contract workflow. A contract moves through a fixed status machine, every change is kept as an immutable version, and the audit row is written in the same database transaction as the change.
+Corporate contract workflow: a fixed status machine, an immutable version for every change, and an audit row written in the same database transaction as the change.
 
-It is meant for people who want to read, run, and extend that workflow. It is not a complete legal suite: there is no real single sign-on, no digital signature, and no clause library.
+`DRAFT` goes to `IN_REVIEW`, then to `APPROVED` or `REJECTED`. `REJECTED` can return to `DRAFT`. A viewer cannot read drafts. An approved contract cannot be edited or deleted. This is not a full legal suite: there is no real single sign-on, no digital signature, and no clause library.
 
-[Português](docs/pt/README.md) · [Business rules](rules-documentation.md) · [Technical notes](tech-documentation.md) · [Decisions](docs/adr/001-zod-at-the-api-boundary.md) · [Why versions exist](docs/blog/contract-approval-without-losing-history.md)
+![Dashboard](docs/screenshots/dashboard.png)
+![Contracts](docs/screenshots/contracts.png)
+![Review](docs/screenshots/review.png)
 
-## Workflow
+## What is in the app
 
-```
-DRAFT → IN_REVIEW → APPROVED
-                 ↘ REJECTED → DRAFT
-```
+- Login with three roles: ADMIN, LEGAL, and VIEWER
+- Contracts: create, edit, submit, approve, reject, and return to draft
+- Immutable versions and an audit log
+- User administration
+- PDF export of a contract
 
-A viewer can read anything except drafts. Editing is allowed on `DRAFT` and `REJECTED` only. An approved contract cannot be deleted.
+## Requirements
 
-![Contract in review, with approve and reject](docs/images/approval-flow.png)
+- Node.js 20+
+- pnpm 10+
+- Docker and Docker Compose
 
-## Stack
-
-| App | Role |
-| --- | --- |
-| `apps/backend` | NestJS API, PostgreSQL, Sequelize at runtime, Knex for migrations |
-| `apps/frontend` | Next.js 14, Tailwind, Zustand |
-| `packages/shared-types` | Roles, status transitions, permission helpers |
-
-## Run it
-
-Requirements: Node.js 20+, pnpm 10+, Docker.
+## Quick start
 
 ```bash
-git clone https://github.com/victor-dias-dev/Jurix
-cd Jurix
 pnpm install
 cp .env.example .env
 docker compose up -d
-pnpm db:migrate && pnpm db:seed
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
-- App: http://localhost:3000
-- API: http://localhost:3001/api
-- Optional pgAdmin: `docker compose --profile tools up -d`, then http://localhost:5050 (`admin@jurix.local` / `admin123`)
+Seed users: `admin@jurix.com` / `Admin@123`, `legal@jurix.com` / `Legal@123`, `viewer@jurix.com` / `Viewer@123`.
 
-The API reads `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, and `DB_DATABASE`. Compose publishes Postgres on host port **5433**. It refuses to start without `JWT_SECRET` and `JWT_REFRESH_SECRET`.
+`pnpm dev` starts the NestJS API and the Next.js app. Separately: `pnpm dev:backend` and `pnpm dev:frontend`.
 
-### Demo accounts
+App: http://localhost:3000. API prefix: `/api`. Health: `GET /api/health`.
 
-These users exist only after `pnpm db:seed` on a local database.
+The API refuses to boot when `JWT_SECRET` or `JWT_REFRESH_SECRET` is missing. Copy the example and keep real secrets out of git. Compose publishes Postgres on host port `5433`.
 
-| Role | Email | Password |
-| --- | --- | --- |
-| ADMIN | admin@jurix.com | Admin@123 |
-| LEGAL | legal@jurix.com | Legal@123 |
-| VIEWER | viewer@jurix.com | Viewer@123 |
+Optional pgAdmin: `docker compose --profile tools up -d`, then http://localhost:5050 (`admin@jurix.local` / `admin123`).
+
+| Variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | `development`, `test`, or `production` |
+| `PORT` | API port (`3001`) |
+| `DB_HOST` | PostgreSQL host |
+| `DB_PORT` | PostgreSQL port (`5433` with Compose) |
+| `DB_USERNAME` | Database user |
+| `DB_PASSWORD` | Database password |
+| `DB_DATABASE` | Database name |
+| `JWT_SECRET` | Access token secret. Required |
+| `JWT_EXPIRES_IN` | Access token lifetime (`15m`) |
+| `JWT_REFRESH_SECRET` | Refresh token secret. Required |
+| `JWT_REFRESH_EXPIRES_IN` | Refresh token lifetime (`7d`) |
+| `CORS_ORIGIN` | Allowed browser origin |
+| `NEXT_PUBLIC_API_URL` | API origin, without `/api` (`http://localhost:3001`) |
 
 ## Checks
 
 ```bash
-pnpm lint
 pnpm test
 pnpm --filter @jurix/backend test:e2e
+pnpm lint
 pnpm build
 ```
 
-## Roadmap
+End-to-end tests need PostgreSQL with the variables from `.env.example`.
 
-1. OpenAPI generated from the Zod schemas, starting with the auth module.
-2. A rate limit on `POST /api/auth/login`.
-3. A Postgres trigger that refuses `UPDATE` and `DELETE` on `audit_logs`.
+## Repository
 
-Those three are also listed as starter tasks in [CONTRIBUTING.md](CONTRIBUTING.md).
+```text
+apps/backend        NestJS REST API
+apps/frontend       Next.js 14
+packages/shared-types  Roles, status machine, permission helpers
+```
 
-## License
+Business rules: [rules-documentation.md](rules-documentation.md). Technical notes: [tech-documentation.md](tech-documentation.md). Decisions: [docs/adr](docs/adr/001-zod-at-the-api-boundary.md). Why versions exist: [docs/blog/contract-approval-without-losing-history.md](docs/blog/contract-approval-without-losing-history.md).
 
-[MIT](LICENSE) © victor-dias-dev
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports go through [private vulnerability reporting](https://github.com/victor-dias-dev/Jurix/security/advisories/new), described in [SECURITY.md](SECURITY.md).
+
+Licensed under the [MIT License](LICENSE).
