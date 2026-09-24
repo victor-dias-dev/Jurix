@@ -2,6 +2,7 @@
   "name": "jurix",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "pnpm@10.33.3",
   "description": "Plataforma de Contratos Jurídicos - Sistema corporativo para gerenciamento de contratos legais",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
