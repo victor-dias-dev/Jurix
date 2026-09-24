@@ -12,7 +12,7 @@ export async function up(knex: Knex): Promise<void> {
 
   await knex.schema.createTable('contracts', (table) => {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
-    table.string('title', 255).notNullable();
+    table.string('title', 500).notNullable();
     table.text('content').notNullable();
     table.specificType('status', 'contract_status').notNullable().defaultTo('DRAFT');
     table.uuid('created_by_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');

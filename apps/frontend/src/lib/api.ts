@@ -1,6 +1,7 @@
 import { ApiResponse, ApiErrorResponse, AuthResponse } from '@jurix/shared-types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
+const API_URL = `${API_ORIGIN}/api`;
 
 type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 

@@ -46,16 +46,8 @@ export class AuthController {
   @UsePipes(new ZodValidationPipe(refreshTokenSchema))
   async refresh(
     @Body() refreshTokenDto: RefreshTokenDto,
-    @Req() req: Request,
   ): Promise<ApiResponse<AuthResponse>> {
-    const ipAddress = req.ip ?? req.socket.remoteAddress;
-    const userAgent = req.get('user-agent');
-
-    const data = await this.authService.refreshToken(
-      refreshTokenDto,
-      ipAddress,
-      userAgent,
-    );
+    const data = await this.authService.refreshToken(refreshTokenDto);
 
     return {
       success: true,

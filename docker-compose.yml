@@ -19,11 +19,12 @@ services:
       retries: 5
 
   pgadmin:
+    profiles: ['tools']
     image: dpage/pgadmin4:latest
     container_name: jurix-pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@jurix.dev
+      PGADMIN_DEFAULT_EMAIL: admin@jurix.local
       PGADMIN_DEFAULT_PASSWORD: admin123
       PGADMIN_CONFIG_SERVER_MODE: 'False'
     ports:

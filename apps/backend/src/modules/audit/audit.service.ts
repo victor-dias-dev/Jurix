@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Op, WhereOptions } from 'sequelize';
+import { Op, Transaction, WhereOptions } from 'sequelize';
 
 import { AuditLog, User } from '../../models';
 import { AuditAction, EntityType, AuditLogFilters, PaginatedResponse } from '@jurix/shared-types';
@@ -22,16 +22,19 @@ export class AuditService {
     private readonly auditLogModel: typeof AuditLog,
   ) {}
 
-  async log(data: CreateAuditLogDto): Promise<AuditLog> {
-    return this.auditLogModel.create({
-      userId: data.userId,
-      action: data.action,
-      entityType: data.entityType,
-      entityId: data.entityId ?? null,
-      metadata: data.metadata ?? null,
-      ipAddress: data.ipAddress ?? null,
-      userAgent: data.userAgent ?? null,
-    });
+  async log(data: CreateAuditLogDto, transaction?: Transaction): Promise<AuditLog> {
+    return this.auditLogModel.create(
+      {
+        userId: data.userId,
+        action: data.action,
+        entityType: data.entityType,
+        entityId: data.entityId ?? null,
+        metadata: data.metadata ?? null,
+        ipAddress: data.ipAddress ?? null,
+        userAgent: data.userAgent ?? null,
+      },
+      { transaction },
+    );
   }
 
   async findAll(

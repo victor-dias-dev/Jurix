@@ -1,229 +1,96 @@
-# 🏛️ Jurix - Plataforma de Contratos Jurídicos
+# Jurix
 
-Sistema corporativo para gerenciamento de contratos legais, com controle de acesso, workflow de aprovação, histórico de versões e foco em auditoria e segurança.
+[Português](README.pt-BR.md)
 
-## 📋 Índice
+[![CI](https://github.com/victor-dias-dev/Jurix/actions/workflows/ci.yml/badge.svg)](https://github.com/victor-dias-dev/Jurix/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 
-- [Arquitetura](#-arquitetura)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação](#-instalação)
-- [Executando o Projeto](#-executando-o-projeto)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Usuários de Demonstração](#-usuários-de-demonstração)
-- [API Endpoints](#-api-endpoints)
+Corporate contract workflow: a fixed status machine, an immutable version for every change, and an audit row written in the same database transaction as the change.
 
-## 🏗️ Arquitetura
+`DRAFT` goes to `IN_REVIEW`, then to `APPROVED` or `REJECTED`. `REJECTED` can return to `DRAFT`. A viewer cannot read drafts. An approved contract cannot be edited or deleted. This is not a full legal suite: there is no real single sign-on, no digital signature, and no clause library.
 
-Este projeto é organizado como um **monorepo** usando pnpm workspaces:
+![Dashboard](docs/screenshots/dashboard.png)
+![Contracts](docs/screenshots/contracts.png)
+![Review](docs/screenshots/review.png)
 
-```
-jurix/
-├── apps/
-│   ├── backend/      # NestJS REST API
-│   └── frontend/     # Next.js 14 (App Router)
-├── packages/
-│   └── shared-types/ # Tipos TypeScript compartilhados
-└── docker-compose.yml
-```
+## What is in the app
 
-### Stack Tecnológica
+- Login with three roles: ADMIN, LEGAL, and VIEWER
+- Contracts: create, edit, submit, approve, reject, and return to draft
+- Immutable versions and an audit log
+- User administration
+- PDF export of a contract
 
-**Backend:**
-- NestJS + TypeScript
-- PostgreSQL
-- Sequelize (ORM) + Knex.js (Migrations)
-- JWT (Access + Refresh Token)
-- RBAC (Role-Based Access Control)
+## Requirements
 
-**Frontend:**
-- Next.js 14 (App Router)
-- React + TypeScript
-- Tailwind CSS
-- Zustand (Estado global)
+- Node.js 20+
+- pnpm 10+
+- Docker and Docker Compose
 
-## 📦 Pré-requisitos
+## Quick start
 
-- Node.js 18+
-- pnpm 8+
-- Docker e Docker Compose
-
-## 🚀 Instalação
-
-1. **Clone o repositório:**
-```bash
-git clone <repo-url>
-cd jurix
-```
-
-2. **Instale as dependências:**
 ```bash
 pnpm install
-```
-
-3. **Inicie o banco de dados:**
-```bash
-docker-compose up -d
-```
-
-4. **Configure as variáveis de ambiente:**
-
-O backend já possui um arquivo `.env` configurado para desenvolvimento local.
-Para produção, copie `.env.example` e configure as variáveis.
-
-5. **Execute as migrations:**
-```bash
+cp .env.example .env
+docker compose up -d
 pnpm db:migrate
-```
-
-6. **Popule o banco com dados iniciais:**
-```bash
 pnpm db:seed
-```
-
-## ▶️ Executando o Projeto
-
-**Desenvolvimento (frontend e backend simultaneamente):**
-```bash
 pnpm dev
 ```
 
-**Apenas backend:**
+Seed users: `admin@jurix.com` / `Admin@123`, `legal@jurix.com` / `Legal@123`, `viewer@jurix.com` / `Viewer@123`.
+
+`pnpm dev` starts the NestJS API and the Next.js app. Separately: `pnpm dev:backend` and `pnpm dev:frontend`.
+
+App: http://localhost:3000. API prefix: `/api`. Health: `GET /api/health`.
+
+The API refuses to boot when `JWT_SECRET` or `JWT_REFRESH_SECRET` is missing. Copy the example and keep real secrets out of git. Compose publishes Postgres on host port `5433`.
+
+Optional pgAdmin: `docker compose --profile tools up -d`, then http://localhost:5050 (`admin@jurix.local` / `admin123`).
+
+| Variable | Purpose |
+| --- | --- |
+| `NODE_ENV` | `development`, `test`, or `production` |
+| `PORT` | API port (`3001`) |
+| `DB_HOST` | PostgreSQL host |
+| `DB_PORT` | PostgreSQL port (`5433` with Compose) |
+| `DB_USERNAME` | Database user |
+| `DB_PASSWORD` | Database password |
+| `DB_DATABASE` | Database name |
+| `JWT_SECRET` | Access token secret. Required |
+| `JWT_EXPIRES_IN` | Access token lifetime (`15m`) |
+| `JWT_REFRESH_SECRET` | Refresh token secret. Required |
+| `JWT_REFRESH_EXPIRES_IN` | Refresh token lifetime (`7d`) |
+| `CORS_ORIGIN` | Allowed browser origin |
+| `NEXT_PUBLIC_API_URL` | API origin, without `/api` (`http://localhost:3001`) |
+
+## Checks
+
 ```bash
-pnpm dev:backend
+pnpm test
+pnpm --filter @jurix/backend test:e2e
+pnpm lint
+pnpm build
 ```
 
-**Apenas frontend:**
-```bash
-pnpm dev:frontend
+End-to-end tests need PostgreSQL with the variables from `.env.example`.
+
+## Repository
+
+```text
+apps/backend        NestJS REST API
+apps/frontend       Next.js 14
+packages/shared-types  Roles, status machine, permission helpers
 ```
 
-### URLs
+Business rules: [rules-documentation.md](rules-documentation.md). Technical notes: [tech-documentation.md](tech-documentation.md). Decisions: [docs/adr](docs/adr/001-zod-at-the-api-boundary.md). Why versions exist: [docs/blog/contract-approval-without-losing-history.md](docs/blog/contract-approval-without-losing-history.md).
 
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:3001/api
-- **pgAdmin:** http://localhost:5050 (admin@jurix.local / admin123)
+## Contributing
 
-## 📁 Estrutura do Projeto
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security reports go through [private vulnerability reporting](https://github.com/victor-dias-dev/Jurix/security/advisories/new), described in [SECURITY.md](SECURITY.md).
 
-### Backend (`apps/backend/src/`)
-
-```
-src/
-├── config/           # Configurações (DB, JWT)
-├── database/
-│   ├── migrations/   # Migrations Knex
-│   └── seeds/        # Seeds para dados iniciais
-├── models/           # Modelos Sequelize
-├── modules/
-│   ├── auth/         # Autenticação JWT
-│   ├── users/        # Gerenciamento de usuários
-│   ├── contracts/    # CRUD e workflow de contratos
-│   └── audit/        # Logs de auditoria
-├── app.module.ts
-└── main.ts
-```
-
-### Frontend (`apps/frontend/src/`)
-
-```
-src/
-├── app/
-│   ├── (authenticated)/  # Rotas protegidas
-│   │   └── dashboard/
-│   ├── login/
-│   └── page.tsx          # Landing page
-├── components/
-│   └── layout/           # Sidebar, Header
-├── lib/                  # Utilitários e API client
-└── store/                # Zustand stores
-```
-
-## 👤 Usuários de Demonstração
-
-Após executar o seed, os seguintes usuários estão disponíveis:
-
-| Perfil | Email | Senha | Permissões |
-|--------|-------|-------|------------|
-| **ADMIN** | admin@jurix.com | Admin@123 | Acesso total |
-| **LEGAL** | legal@jurix.com | Legal@123 | Criar, editar, aprovar contratos |
-| **VIEWER** | viewer@jurix.com | Viewer@123 | Apenas visualização |
-
-## 🔌 API Endpoints
-
-### Autenticação
-
-```
-POST /api/auth/login      # Login
-POST /api/auth/refresh    # Renovar token
-POST /api/auth/logout     # Logout
-```
-
-### Contratos
-
-```
-GET    /api/contracts           # Listar contratos
-POST   /api/contracts           # Criar contrato
-GET    /api/contracts/:id       # Obter contrato
-PUT    /api/contracts/:id       # Atualizar contrato
-DELETE /api/contracts/:id       # Excluir contrato (ADMIN)
-
-POST   /api/contracts/:id/submit    # Enviar para revisão
-POST   /api/contracts/:id/approve   # Aprovar
-POST   /api/contracts/:id/reject    # Rejeitar
-GET    /api/contracts/:id/versions  # Histórico de versões
-```
-
-### Usuários
-
-```
-GET    /api/users       # Listar usuários (ADMIN)
-POST   /api/users       # Criar usuário (ADMIN)
-GET    /api/users/me    # Usuário atual
-GET    /api/users/:id   # Obter usuário (ADMIN)
-PUT    /api/users/:id   # Atualizar usuário (ADMIN)
-DELETE /api/users/:id   # Desativar usuário (ADMIN)
-```
-
-### Auditoria
-
-```
-GET /api/audit          # Logs de auditoria
-GET /api/audit/entity   # Logs por entidade
-```
-
-## 📜 Workflow de Contratos
-
-```
-DRAFT → IN_REVIEW → APPROVED
-                ↘ REJECTED → DRAFT
-```
-
-- **DRAFT:** Rascunho, pode ser editado livremente
-- **IN_REVIEW:** Em análise, bloqueado para edição
-- **APPROVED:** Aprovado, somente leitura
-- **REJECTED:** Rejeitado, pode retornar para DRAFT
-
-## 🔐 Permissões (RBAC)
-
-| Ação | ADMIN | LEGAL | VIEWER |
-|------|-------|-------|--------|
-| Criar contrato | ✅ | ✅ | ❌ |
-| Editar contrato | ✅ | ✅ | ❌ |
-| Excluir contrato | ✅ | ❌ | ❌ |
-| Aprovar/Rejeitar | ✅ | ✅ | ❌ |
-| Visualizar contrato | ✅ | ✅ | ✅* |
-| Gerenciar usuários | ✅ | ❌ | ❌ |
-
-*VIEWER não vê contratos em DRAFT
-
-## 🛡️ Segurança
-
-- JWT com Access Token (15min) + Refresh Token (7 dias)
-- Logs de auditoria imutáveis
-- Validação de dados com class-validator (backend) e Zod (compartilhado)
-- Senhas hasheadas com bcrypt
-- CORS configurado
-
----
-
-Desenvolvido para demonstrar maturidade técnica em ambientes corporativos.
+Licensed under the [MIT License](LICENSE).

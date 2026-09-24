@@ -1,11 +1,9 @@
-export { User } from './user.model';
-export { Contract } from './contract.model';
-export { ContractVersion } from './contract-version.model';
-export { AuditLog } from './audit-log.model';
+import { User } from './user.model';
+import { Contract } from './contract.model';
+import { ContractVersion } from './contract-version.model';
+import { AuditLog } from './audit-log.model';
+import { RefreshToken } from './refresh-token.model';
 
-export const models = [
-  require('./user.model').User,
-  require('./contract.model').Contract,
-  require('./contract-version.model').ContractVersion,
-  require('./audit-log.model').AuditLog,
-];
+export { User, Contract, ContractVersion, AuditLog, RefreshToken };
+
+export const models = [User, Contract, ContractVersion, AuditLog, RefreshToken];

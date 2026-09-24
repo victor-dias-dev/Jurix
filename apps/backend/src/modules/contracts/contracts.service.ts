@@ -77,15 +77,18 @@ export class ContractsService {
         { transaction },
       );
 
-      await this.auditService.log({
-        userId: user.id,
-        action: AuditAction.CONTRACT_CREATED,
-        entityType: EntityType.CONTRACT,
-        entityId: contract.id,
-        metadata: { title: contract.title },
-        ipAddress,
-        userAgent,
-      });
+      await this.auditService.log(
+        {
+          userId: user.id,
+          action: AuditAction.CONTRACT_CREATED,
+          entityType: EntityType.CONTRACT,
+          entityId: contract.id,
+          metadata: { title: contract.title },
+          ipAddress,
+          userAgent,
+        },
+        transaction,
+      );
 
       await transaction.commit();
 
@@ -104,13 +107,24 @@ export class ContractsService {
     const limit = options.limit ?? 20;
     const offset = (page - 1) * limit;
 
+    if (user.role === UserRole.VIEWER && options.status === ContractStatus.DRAFT) {
+      return {
+        success: true,
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
     const where: Record<string, unknown> = {};
 
     if (user.role === UserRole.VIEWER) {
-      where.status = { [Op.ne]: ContractStatus.DRAFT };
-    }
-
-    if (options.status) {
+      where.status = options.status ?? { [Op.ne]: ContractStatus.DRAFT };
+    } else if (options.status) {
       where.status = options.status;
     }
 
@@ -223,15 +237,18 @@ export class ContractsService {
         { transaction },
       );
 
-      await this.auditService.log({
-        userId: user.id,
-        action: AuditAction.CONTRACT_UPDATED,
-        entityType: EntityType.CONTRACT,
-        entityId: contract.id,
-        metadata: { version: newVersion, changes: updateContractDto },
-        ipAddress,
-        userAgent,
-      });
+      await this.auditService.log(
+        {
+          userId: user.id,
+          action: AuditAction.CONTRACT_UPDATED,
+          entityType: EntityType.CONTRACT,
+          entityId: contract.id,
+          metadata: { version: newVersion, changes: updateContractDto },
+          ipAddress,
+          userAgent,
+        },
+        transaction,
+      );
 
       await transaction.commit();
 
@@ -258,17 +275,28 @@ export class ContractsService {
       throw new ForbiddenException('Contratos aprovados não podem ser excluídos');
     }
 
-    await this.auditService.log({
-      userId: user.id,
-      action: AuditAction.CONTRACT_DELETED,
-      entityType: EntityType.CONTRACT,
-      entityId: contract.id,
-      metadata: { title: contract.title, status: contract.status },
-      ipAddress,
-      userAgent,
-    });
+    const transaction = await this.sequelize.transaction();
 
-    await contract.destroy();
+    try {
+      await this.auditService.log(
+        {
+          userId: user.id,
+          action: AuditAction.CONTRACT_DELETED,
+          entityType: EntityType.CONTRACT,
+          entityId: contract.id,
+          metadata: { title: contract.title, status: contract.status },
+          ipAddress,
+          userAgent,
+        },
+        transaction,
+      );
+
+      await contract.destroy({ transaction });
+      await transaction.commit();
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async submit(
@@ -357,6 +385,7 @@ export class ContractsService {
       );
     }
 
+    const previousStatus = contract.status;
     const transaction = await this.sequelize.transaction();
 
     try {
@@ -383,20 +412,23 @@ export class ContractsService {
         { transaction },
       );
 
-      await this.auditService.log({
-        userId: user.id,
-        action: auditAction,
-        entityType: EntityType.CONTRACT,
-        entityId: contract.id,
-        metadata: {
-          previousStatus: contract.status,
-          newStatus,
-          reason,
-          version: newVersion,
+      await this.auditService.log(
+        {
+          userId: user.id,
+          action: auditAction,
+          entityType: EntityType.CONTRACT,
+          entityId: contract.id,
+          metadata: {
+            previousStatus,
+            newStatus,
+            reason,
+            version: newVersion,
+          },
+          ipAddress,
+          userAgent,
         },
-        ipAddress,
-        userAgent,
-      });
+        transaction,
+      );
 
       await transaction.commit();
 

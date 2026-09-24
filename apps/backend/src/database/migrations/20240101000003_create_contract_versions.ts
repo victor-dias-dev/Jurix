@@ -5,7 +5,7 @@ export async function up(knex: Knex): Promise<void> {
     table.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     table.uuid('contract_id').notNullable().references('id').inTable('contracts').onDelete('CASCADE');
     table.integer('version').notNullable();
-    table.string('title', 255).notNullable();
+    table.string('title', 500).notNullable();
     table.text('content').notNullable();
     table.specificType('status', 'contract_status').notNullable();
     table.uuid('changed_by_id').notNullable().references('id').inTable('users').onDelete('RESTRICT');
